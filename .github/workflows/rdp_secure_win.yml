@@ -115,11 +115,24 @@ jobs:
           Write-Host "`n=== RDP ACCESS ==="
           Write-Host "Address: $env:TAILSCALE_IP"
           Write-Host "Username: RDP"
-          Write-Host "Password: $(echo $env:RDP_CREDS)"
-          Write-Host "==================`n"
-          
-          # Keep runner active indefinitely (or until manually cancelled)
+          Write-Host "Password: $env:RDP_CREDS"
+          Write-Host "=================="
+          Write-Host "`nConnection details have been printed above."
+          Write-Host "Keep this workflow running. Use Ctrl+C or cancel the run to stop."
+          Write-Host "`n"
+
+          $summary = @"
+          ## RDP ACCESS
+
+          | Field | Value |
+          |---|---|
+          | Address | $env:TAILSCALE_IP |
+          | Username | RDP |
+          | Password | $env:RDP_CREDS |
+          "@
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
+
           while ($true) {
-              Write-Host "[$(Get-Date)] RDP Active - Use Ctrl+C in workflow to terminate"
+              Write-Host "[$(Get-Date)] RDP Active"
               Start-Sleep -Seconds 300
           }
