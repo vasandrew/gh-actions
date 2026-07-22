@@ -110,16 +110,13 @@ jobs:
           }
           Write-Host "TCP connectivity successful!"
 
-      - name: Maintain Connection
+      - name: Show RDP Connection Details
         run: |
           Write-Host "`n=== RDP ACCESS ==="
           Write-Host "Address: $env:TAILSCALE_IP"
           Write-Host "Username: RDP"
           Write-Host "Password: $env:RDP_CREDS"
-          Write-Host "=================="
-          Write-Host "`nConnection details have been printed above."
-          Write-Host "Keep this workflow running. Use Ctrl+C or cancel the run to stop."
-          Write-Host "`n"
+          Write-Host "==================`n"
 
           $summary = @"
           ## RDP ACCESS
@@ -132,7 +129,9 @@ jobs:
           "@
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary
 
+      - name: Maintain Connection
+        run: |
           while ($true) {
-              Write-Host "[$(Get-Date)] RDP Active"
+              Write-Host "[$(Get-Date)] RDP Active - Use cancel in workflow to terminate"
               Start-Sleep -Seconds 300
           }
