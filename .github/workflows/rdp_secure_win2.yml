@@ -1,0 +1,123 @@
+name: RDP Secure Windows 2
+
+permissions:
+  contents: read
+  actions: read
+  packages: read
+  security-events: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  secure-rdp:
+    runs-on: windows-latest
+    timeout-minutes: 3600
+
+    steps:
+      - name: Configure Remote Desktop
+        shell: powershell
+        run: |
+          # Enable Remote Desktop
+          Set-ItemProperty `
+            -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' `
+            -Name "fDenyTSConnections" `
+            -Value 0
+
+          # Enable Network Level Authentication (recommended)
+          Set-ItemProperty `
+            -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' `
+            -Name "UserAuthentication" `
+            -Value 1
+
+          # Enable built-in Remote Desktop firewall rules
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+          Restart-Service TermService -Force
+
+      - name: Create or Update RDP User
+        shell: powershell
+        env:
+          RDP_USERNAME: ${{ secrets.RDP_USERNAME }}
+          RDP_PASSWORD: ${{ secrets.RDP_PASSWORD }}
+        run: |
+          $securePass = ConvertTo-SecureString $env:RDP_PASSWORD -AsPlainText -Force
+
+          if (Get-LocalUser -Name $env:RDP_USERNAME -ErrorAction SilentlyContinue) {
+              Write-Host "User already exists. Updating password..."
+              Set-LocalUser `
+                -Name $env:RDP_USERNAME `
+                -Password $securePass
+          }
+          else {
+              Write-Host "Creating user..."
+              New-LocalUser `
+                -Name $env:RDP_USERNAME `
+                -Password $securePass `
+                -AccountNeverExpires
+          }
+
+          Add-LocalGroupMember `
+            -Group "Administrators" `
+            -Member $env:RDP_USERNAME `
+            -ErrorAction SilentlyContinue
+
+          Add-LocalGroupMember `
+            -Group "Remote Desktop Users" `
+            -Member $env:RDP_USERNAME `
+            -ErrorAction SilentlyContinue
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Get Tailscale IP
+        shell: powershell
+        run: |
+          $ip = tailscale ip -4
+
+          if (-not $ip) {
+            Write-Error "Unable to determine Tailscale IP"
+            exit 1
+          }
+
+          echo "TAILSCALE_IP=$ip" >> $env:GITHUB_ENV
+
+      - name: Verify RDP
+        shell: powershell
+        run: |
+          Write-Host "Checking RDP on $env:TAILSCALE_IP..."
+
+          $result = Test-NetConnection `
+            -ComputerName $env:TAILSCALE_IP `
+            -Port 3389
+
+          if (-not $result.TcpTestSucceeded) {
+            Write-Error "RDP is not reachable."
+            exit 1
+          }
+
+          Write-Host "RDP is available."
+
+      - name: Show Tailscale IP
+        shell: powershell
+        run: |
+          Write-Host ""
+          Write-Host "=========================="
+          Write-Host $env:TAILSCALE_IP
+          Write-Host "=========================="
+
+          Add-Content `
+            -Path $env:GITHUB_STEP_SUMMARY `
+            -Value "## Tailscale IP`n`n$env:TAILSCALE_IP"
+
+      - name: Keep Runner Alive
+        shell: powershell
+        run: |
+          while ($true) {
+            Write-Host "[$(Get-Date)] Runner is alive..."
+            Start-Sleep -Seconds 300
+          }
