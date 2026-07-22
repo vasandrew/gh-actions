@@ -72,7 +72,6 @@ jobs:
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
 
       - name: Get Tailscale IP
         shell: powershell
@@ -121,3 +120,9 @@ jobs:
             Write-Host "[$(Get-Date)] Runner is alive..."
             Start-Sleep -Seconds 300
           }
+
+      - name: Disconnect Tailscale
+        if: always()
+        shell: powershell
+        run: |
+          tailscale logout          
