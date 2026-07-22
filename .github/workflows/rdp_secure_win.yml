@@ -81,7 +81,7 @@ jobs:
         run: |
           $authKeyFile = "$env:TEMP\ts-auth-key"
           Set-Content -Path $authKeyFile -Value "${{ inputs.TAILSCALE_AUTH_KEY }}" -NoNewline
-          & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey-file=$authKeyFile --hostname=gh-runner-$env:GITHUB_RUN_ID
+          & "$env:ProgramFiles\Tailscale\tailscale.exe" up --auth-key=file:$authKeyFile --hostname=gh-runner-$env:GITHUB_RUN_ID
           Remove-Item $authKeyFile -Force
           
           $tsIP = $null
