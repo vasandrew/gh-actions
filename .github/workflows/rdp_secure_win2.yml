@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies (Windows)
         shell: pwsh
         run: |
-          choco install qbittorrent ffmpeg wget --no-progress -y
+          choco install qbittorrent ffmpeg wget vscode --no-progress -y
 
       - name: Configure Remote Desktop
         shell: powershell
