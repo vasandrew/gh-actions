@@ -15,6 +15,12 @@ jobs:
     timeout-minutes: 3600
 
     steps:
+      # --- Windows: install qBittorrent
+      - name: Install dependencies (Windows)
+        shell: pwsh
+        run: |
+          choco install qbittorrent --no-progress -y
+
       - name: Configure Remote Desktop
         shell: powershell
         run: |
