@@ -14,16 +14,21 @@ on:
         required: true
         type: string 
         default: "gh-1"
+      install_far:
+        description: Install Far Manager
+        type: boolean
+        required: false
+        default: true
       install_doublecmd:
         description: Install Double Commander
         type: boolean
         required: false
-        default: true             
+        default: false             
       install_qbittorrent:
         description: Install qBittorrent
         type: boolean
         required: false
-        default: true
+        default: false
       install_ffmpeg:
         description: Install ffmpeg
         type: boolean
@@ -38,7 +43,7 @@ on:
         description: Install VS Code
         type: boolean
         required: false
-        default: true    
+        default: false    
 
 jobs:
   secure-rdp:
@@ -51,6 +56,7 @@ jobs:
         run: |
           $packages = @()
 
+          if ("${{ inputs.install_far }}" -eq "true") { $packages += "far" }
           if ("${{ inputs.install_doublecmd }}" -eq "true") { $packages += "doublecmd" }
           if ("${{ inputs.install_qbittorrent }}" -eq "true") { $packages += "qbittorrent" }
           if ("${{ inputs.install_ffmpeg }}" -eq "true")      { $packages += "ffmpeg" }
