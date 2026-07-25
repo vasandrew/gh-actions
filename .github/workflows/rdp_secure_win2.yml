@@ -148,6 +148,7 @@ jobs:
       - name: Show Tailscale IP
         shell: powershell
         run: |
+          tailscale set --hostname=${{ inputs.target_host }}
           Write-Host ""
           Write-Host "=========================="
           Write-Host $env:TAILSCALE_IP
