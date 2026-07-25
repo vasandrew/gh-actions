@@ -9,6 +9,11 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
+      target_host:
+        description: Machine name
+        required: true
+        type: string 
+        default: "remote-machine-1"     
       install_qbittorrent:
         description: Install qBittorrent
         type: boolean
