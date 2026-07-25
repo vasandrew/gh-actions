@@ -40,13 +40,14 @@ jobs:
         shell: pwsh
         run: |
           $packages = @()
-          if (${{ inputs.install_qbittorrent }}) { $packages += "qbittorrent" }
-          if (${{ inputs.install_ffmpeg }})      { $packages += "ffmpeg" }
-          if (${{ inputs.install_wget }})         { $packages += "wget" }
-          if (${{ inputs.install_vscode }})       { $packages += "vscode" }
+
+          if ("${{ inputs.install_qbittorrent }}" -eq "true") { $packages += "qbittorrent" }
+          if ("${{ inputs.install_ffmpeg }}" -eq "true")      { $packages += "ffmpeg" }
+          if ("${{ inputs.install_wget }}" -eq "true")        { $packages += "wget" }
+          if ("${{ inputs.install_vscode }}" -eq "true")      { $packages += "vscode" }
 
           if ($packages.Count -gt 0) {
-            choco install $packages --no-progress -y
+            choco install @packages --no-progress -y
           } else {
             Write-Host "No packages selected"
           }
