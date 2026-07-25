@@ -13,7 +13,7 @@ on:
         description: Machine name
         required: true
         type: string 
-        default: "remote-machine-1"     
+        default: "gh-1"     
       install_qbittorrent:
         description: Install qBittorrent
         type: boolean
