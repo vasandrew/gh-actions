@@ -13,7 +13,12 @@ on:
         description: Machine name
         required: true
         type: string 
-        default: "gh-1"     
+        default: "gh-1"
+      install_doublecmd:
+        description: Install Double Commander
+        type: boolean
+        required: false
+        default: true             
       install_qbittorrent:
         description: Install qBittorrent
         type: boolean
@@ -46,6 +51,7 @@ jobs:
         run: |
           $packages = @()
 
+          if ("${{ inputs.install_doublecmd }}" -eq "true") { $packages += "doublecmd" }
           if ("${{ inputs.install_qbittorrent }}" -eq "true") { $packages += "qbittorrent" }
           if ("${{ inputs.install_ffmpeg }}" -eq "true")      { $packages += "ffmpeg" }
           if ("${{ inputs.install_wget }}" -eq "true")        { $packages += "wget" }
