@@ -8,6 +8,27 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      install_qbittorrent:
+        description: Install qBittorrent
+        type: boolean
+        required: false
+        default: true
+      install_ffmpeg:
+        description: Install ffmpeg
+        type: boolean
+        required: false
+        default: true
+      install_wget:
+        description: Install wget
+        type: boolean
+        required: false
+        default: true
+      install_vscode:
+        description: Install VS Code
+        type: boolean
+        required: false
+        default: true    
 
 jobs:
   secure-rdp:
@@ -15,11 +36,20 @@ jobs:
     timeout-minutes: 3600
 
     steps:
-      # --- Windows: install qBittorrent
       - name: Install dependencies (Windows)
         shell: pwsh
         run: |
-          choco install qbittorrent ffmpeg wget vscode --no-progress -y
+          $packages = @()
+          if (${{ inputs.install_qbittorrent }}) { $packages += "qbittorrent" }
+          if (${{ inputs.install_ffmpeg }})      { $packages += "ffmpeg" }
+          if (${{ inputs.install_wget }})         { $packages += "wget" }
+          if (${{ inputs.install_vscode }})       { $packages += "vscode" }
+
+          if ($packages.Count -gt 0) {
+            choco install $packages --no-progress -y
+          } else {
+            Write-Host "No packages selected"
+          }
 
       - name: Configure Remote Desktop
         shell: powershell
