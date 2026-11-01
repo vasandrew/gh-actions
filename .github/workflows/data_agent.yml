@@ -9,14 +9,14 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      target_host:
-        description: Machine name
+      data_id:
+        description: Data ID
         required: true
         type: string 
-        default: "gh-1"
+        default: "data"
    
 jobs:
-  secure-rdp:
+  secure-job:
     runs-on: windows-latest
     timeout-minutes: 3600
 
@@ -29,46 +29,17 @@ jobs:
           version: latest
           tags: tag:ci
 
-      - name: Get Tailscale IP
+      - name: Get Ubuntu IP
         shell: powershell
+        id: get_ubuntu_ip
         run: |
-          $ip = tailscale ip -4
-
-          if (-not $ip) {
-            Write-Error "Unable to determine Tailscale IP"
-            exit 1
-          }
-
-          echo "TAILSCALE_IP=$ip" >> $env:GITHUB_ENV
-
-      - name: Verify RDP
-        shell: powershell
-        run: |
-          Write-Host "Checking RDP on $env:TAILSCALE_IP..."
-
-          $result = Test-NetConnection `
-            -ComputerName $env:TAILSCALE_IP `
-            -Port 3389
-
-          if (-not $result.TcpTestSucceeded) {
-            Write-Error "RDP is not reachable."
-            exit 1
-          }
-
-          Write-Host "RDP is available."
-
-      - name: Show Tailscale IP
-        shell: powershell
-        run: |
-          tailscale set --hostname=${{ inputs.target_host }}
-          Write-Host ""
-          Write-Host "=========================="
-          Write-Host $env:TAILSCALE_IP
-          Write-Host "=========================="
-
-          Add-Content `
-            -Path $env:GITHUB_STEP_SUMMARY `
-            -Value "## Tailscale IP`n`n$env:TAILSCALE_IP"
+          $status = tailscale status
+          $line = $status | Select-String "ubuntudefault"
+          if (-not $line) { Write-Error "Машина ubuntudefault не найдена в сети Tailscale"; exit 1 }
+          $ip = ($line.ToString() -split "\s+")[0]
+          echo "IP-адрес ubuntudefault: $ip"
+          echo "ip=$ip" >> $env:GITHUB_OUTPUT
+          # IP доступен в следующих шагах как `${{ steps.get_ubuntu_ip.outputs.ip }}`
 
       - name: Disconnect Tailscale
         if: always()
