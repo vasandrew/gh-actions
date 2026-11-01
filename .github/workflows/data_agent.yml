@@ -35,11 +35,11 @@ jobs:
         run: |
           $status = tailscale status
           $line = $status | Select-String "ubuntudefault"
-          if (-not $line) { Write-Error "Машина ubuntudefault не найдена в сети Tailscale"; exit 1 }
+          if (-not $line) { Write-Error "Server is not available"; exit 1 }
           $ip = ($line.ToString() -split "\s+")[0]
-          echo "IP-адрес ubuntudefault: $ip"
+          echo "IP: $ip"
           echo "ip=$ip" >> $env:GITHUB_OUTPUT
-          # IP доступен в следующих шагах как `${{ steps.get_ubuntu_ip.outputs.ip }}`
+          # IP is available in next steps as `${{ steps.get_ubuntu_ip.outputs.ip }}`
 
       - name: Disconnect Tailscale
         if: always()
