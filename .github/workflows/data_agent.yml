@@ -29,20 +29,29 @@ jobs:
           version: latest
           tags: tag:ci
 
-      - name: Get Ubuntu IP
+      - name: Init scripts
         shell: powershell
-        id: get_ubuntu_ip
         run: |
-          $status = tailscale status
-          $line = $status | Select-String "ubuntudefault"
-          if (-not $line) { Write-Error "Server is not available"; exit 1 }
-          $ip = ($line.ToString() -split "\s+")[0]
-          echo "IP: $ip"
-          echo "ip=$ip" >> $env:GITHUB_OUTPUT
-          # IP is available in next steps as `${{ steps.get_ubuntu_ip.outputs.ip }}`
+          $destinationFolder = "D:\myFiles\scripts"
+          $zipPath = "$destinationFolder\scripts.zip"
+          $url = "http://ubuntudefault:8888/scripts.zip"
+
+          New-Item -ItemType Directory -Force -Path $destinationFolder | Out-Null
+
+          Invoke-WebRequest -Uri $url -OutFile $zipPath
+
+          Expand-Archive -Path $zipPath -DestinationPath $destinationFolder -Force
+
+          Get-Content -Path "$destinationFolder\test.txt"
 
       - name: Disconnect Tailscale
         if: always()
         shell: powershell
         run: |
           tailscale logout          
+
+      - name: Destroy scripts
+        if: always()
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force -Path "D:\myFiles"
